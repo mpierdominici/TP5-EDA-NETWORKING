@@ -40,7 +40,7 @@ bool cliente::sendData(char * dataToSend_t, unsigned int sizeData)
 		DataToSend[i] = dataToSend_t[i];
 	}
 	std::cout << DataToSend[0];
-	std::string mes("hola munpoooo");
+
 	boost::function<void(const boost::system::error_code&, std::size_t)> handler(
 		boost::bind(&cliente::writeCompletitionCallback, this,
 			boost::asio::placeholders::error,
