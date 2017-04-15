@@ -47,7 +47,7 @@ bool servidor::receiveDataForCliente(char * buffer_t, int bufferSize)
 
 	} while (!error);
 
-	if (error != boost::asio::error::eof)
+	if (error == boost::asio::error::eof)
 	{
 		if (longitudDelMensaje < bufferSize)
 		{
