@@ -34,7 +34,7 @@ bool read_IPs(char * buffer, int n) {
             return true;
         }
         
-        for (int i=1; i<n+1;i++)
+        for (int i=1; i<n;i++)
         {
             directions.getline (temp, ' ');
         }
