@@ -1,5 +1,5 @@
 
-#include "iniciar.hpp"
+#include "iniciar.h"
 using namespace std;
 /* iniciar
  *
