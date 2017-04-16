@@ -1,6 +1,6 @@
 
-#ifndef read_IPS_hpp
-#define read_IPS_hpp
+#ifndef read_IPS_h
+#define read_IPS_h
 
 #include <stdio.h>
 #include <iostream>
@@ -11,4 +11,4 @@
 bool read_IPs(char* buffer, int n );
 int getNumberOfLines (void);
 
-#endif /* read_IPS_hpp */
+#endif /* read_IPS_h */
