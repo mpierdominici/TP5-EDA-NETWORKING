@@ -20,7 +20,7 @@ bool iniciar (unsigned int i, char* data)
 		return false;
 
 	char * tmp_arr;
-	char * temp;
+	//char * temp;
 
 	try {
 		tmp_arr = new char [i];// donde se almacenaran los datos del usuario temporalmente hasta quelos mismos esten verificados.
@@ -36,7 +36,7 @@ bool iniciar (unsigned int i, char* data)
     cin >> Letra; //Se lee la letra ingresada
     
     
-    
+    /*
     //Convierte string a arreglo char*
     try {
 		temp = new char[Letra.size() + 1];
@@ -47,7 +47,7 @@ bool iniciar (unsigned int i, char* data)
 	
 	copy(Letra.begin(), Letra.end(), temp);// copia lo que es ingresado por el usuario a un char *
     temp[Letra.size()] = '\0'; // terminador
-    
+    */
     
     if (Letra.size()>1) //chequea que el usuario haya ingresado una sola letra
     {
@@ -55,25 +55,24 @@ bool iniciar (unsigned int i, char* data)
         return false;
     }
      
-    
-    if ((temp[0]>='A'&& temp[0]<='F') || (temp[0]<= 'f'&& temp [0]>='a')) //chequea que la letra elegida este dentro de las opciones
+    if ((Letra[0]>='A'&& Letra[0]<='F') || (Letra[0]<= 'f'&& Letra [0]>='a')) //chequea que la letra elegida este dentro de las opciones
     {
-        data [0]= tolower(temp[0]); // si es correcta, la almacena en el primer elemento de data.
+        data [0]= tolower(Letra[0]); // si es correcta, la almacena en el primer elemento de data.
 	data [1]= 0; //Count = 0
     }
-    else if (temp[0] == 'Q' || temp[0]== 'q') // si el usuario desea salir
+    else if (Letra[0] == 'Q' || Letra[0]== 'q') // si el usuario desea salir
     {
         data [0]= 0; //Letra = 0
         return true;
     }
-
+    
     else // si es incorrecta, devuelve false
     {
         cerr << "Error: opcion no valida. Valores posibles A, B, C, D, E y F, o Q en caso de que desee salir."<< endl;
         return false;
     }
     
-    delete [] temp;
+    //delete [] temp;
 	
     //Para  elegir el orden de las maquinas en el que aparecera la animacion
     cout << "Porfavor elija el orden de las maquinas en que desea que se reproduzca la animacion" <<"\n"<<"El total de maquinas conectadas es de: "<< i <<"\n"<<"Asegurese de colocar todos los numeros del 1 al "<< i<<" sin repetir\n"<< endl;
