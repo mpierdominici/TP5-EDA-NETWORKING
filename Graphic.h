@@ -31,14 +31,11 @@ extern "C" {
 class Graphic {
 private:
 	bool valid;
-	bool background;
 	ALLEGRO_DISPLAY * display;
 	uint32_t xMax;
 	uint32_t yMax;
 	ALLEGRO_BITMAP ** images;
 	uint32_t nImages;
-	//ALLEGRO_EVENT_QUEUE * evQ;
-	//ALLEGRO_TIMER * timer;
 
 public:
 	Graphic (uint32_t _nImages, char * imgFiles[]);
@@ -46,6 +43,9 @@ public:
 	//archivos donde se encuentra cada una de ellas.
 
 	~Graphic();
+
+	bool setupDisplay();
+	void destroyDisplay();
 
 	bool drawImage(uint32_t imgId, float x, float y, bool flipHorizontal);
 	// dibuja la imagen que indica imgId. la esquina SUPERIOR IZQUIERDA va a estar en x,y

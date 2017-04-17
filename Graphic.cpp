@@ -16,70 +16,40 @@ Graphic :: Graphic (uint32_t _nImages, char * imgFiles[])
 	xMax = 0;
 	yMax = 0;
 
-#ifndef DEBUG
-	ALLEGRO_DISPLAY_MODE   disp_data;
-#endif // !DEBUG
-
 	uint32_t i = 0;	//para indexar los punteros a bitmap y a string
 
 	if (_nImages) { //verificar que se haya recibido al menos el fondo
 		if ((images = (ALLEGRO_BITMAP **) calloc(_nImages, sizeof(ALLEGRO_BITMAP *))) != NULL) {
 			if(al_init()) {
-#ifdef DEBUG
-				if( (display = al_create_display(800, 600)) != NULL ) {
-#else
-				al_get_display_mode(al_get_num_display_modes() - 1, &disp_data);
-				al_set_new_display_flags(ALLEGRO_FULLSCREEN);
-				if( (display = al_create_display(disp_data.width, disp_data.height)) != NULL ) {
-#endif // DEBUG
-					if (al_init_image_addon()) {
-						valid = true;	//ya se instalo todo, falta cargar los bitmaps
+				if (al_init_image_addon()) {
+					valid = true;	//ya se instalo todo, falta cargar los bitmaps
 
-						for (i = 0; i<_nImages && imgFiles[i] != NULL && valid == true; i++) {
-							if ( (images[i]=al_load_bitmap(imgFiles[i])) == NULL) {
-								valid = false;
-							}
-						}
-
-						if (valid == false) { //se cargo mal un bitmap, cerrar todo
-							fprintf(stderr, "Unable to load bitmap (image id: %d)\n", i);
-							i--;	//se incrementa uno mas de los que se inicializan correctamente
-
-							while (i-- != 1) {
-								al_destroy_bitmap(images[i]);
-							}
-
-							if (background == true)
-								al_destroy_bitmap(images[0]);
-
-							al_shutdown_image_addon();
-							al_destroy_display(display);
-							display = NULL;
-							free(images);
-							images = NULL;
-						}
-						else { //en este punto ya todo salio bien
-							nImages = _nImages;
-#ifdef DEBUG
-							xMax = 800; yMax = 600;
-#else
-							xMax = disp_data.width;
-							yMax = disp_data.height;
-#endif // DEBUG							
-							al_clear_to_color(al_map_rgb(0,0,0));	//fondo negro
-							al_flip_display();
+					for (i = 0; i<_nImages && imgFiles[i] != NULL && valid == true; i++) {
+						if ( (images[i]=al_load_bitmap(imgFiles[i])) == NULL) {
+							valid = false;
 						}
 					}
-					else {
-						fprintf(stderr, "Unable to install image add-on\n");
-						al_destroy_display(display);
-						display = NULL;
+
+					if (valid == false) { //se cargo mal un bitmap, cerrar todo
+						fprintf(stderr, "Unable to load bitmap (image id: %d)\n", i);
+						i--;	//se incrementa uno mas de los que se inicializan correctamente
+
+						while (i-- != 1) {
+							al_destroy_bitmap(images[i]);
+						}
+
+						al_shutdown_image_addon();
 						free(images);
 						images = NULL;
 					}
+					else { //en este punto ya todo salio bien
+						nImages = _nImages;
+					}
 				}
 				else {
-					fprintf(stderr, "Unable to create display\n");
+					fprintf(stderr, "Unable to install image add-on\n");
+					al_destroy_display(display);
+					display = NULL;
 					free(images);
 					images = NULL;
 				}
@@ -116,6 +86,41 @@ Graphic :: ~Graphic()
 	images = NULL;
 
 	valid = false;
+}
+
+bool Graphic :: setupDisplay()
+{
+	if (valid == false)
+		return false;
+
+#ifdef DEBUG
+	if( (display = al_create_display(800, 600)) != NULL ) {
+		xMax = 800;
+		yMax = 600;
+#else
+	ALLEGRO_DISPLAY_MODE   disp_data;
+
+	al_get_display_mode(al_get_num_display_modes() - 1, &disp_data);
+	al_set_new_display_flags(ALLEGRO_FULLSCREEN);
+	if( (display = al_create_display(disp_data.width, disp_data.height)) != NULL ) {
+		xMax = disp_data.width;
+		yMax = disp_data.height;
+#endif // DEBUG							
+		al_clear_to_color(al_map_rgb(0,0,0));	//fondo negro
+		al_flip_display();
+		return true;	
+	}
+	else {
+		valid = false;	//hubo error!
+		return false;
+	}
+}
+
+
+void Graphic:: destroyDisplay()
+{
+	al_destroy_display(display);
+	display = NULL;
 }
 
 
