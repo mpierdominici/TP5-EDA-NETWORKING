@@ -12,26 +12,25 @@ using namespace std;
  */
 
 
-bool iniciar (unsigned int i, uint8_t* data)
+bool iniciar (unsigned int i, char* data)
 {
     
     //string s = std::to_string(i);
 	if (i == 0)
 		return false;
 
-	uint8_t * tmp_arr;
+	char * tmp_arr;
 	char * temp;
 
 	try {
-		tmp_arr = new uint8_t [i];// donde se almacenaran los datos del usuario temporalmente hasta quelos mismos esten verificados.
+		tmp_arr = new char [i];// donde se almacenaran los datos del usuario temporalmente hasta quelos mismos esten verificados.
 	}catch (bad_alloc& error) {
 		cerr << "bad_alloc caught: " << error.what() << endl;
 	}
 	
-	data [1]= 0; //Count = 0
     
     //Para elegir la animacion
-    cout << "Bienvenido! Porfavor ingrese la letra correspondiente a la animacion que desea reproducir" <<"\n"<< "A. Cat Running"<<"\n"<< "B. Explotion 1"<<"\n"<< "C. Explotion 2 "<<"\n"<< "D. Homer Dance"<<"\n"<< "E. Super Mario"<<"\n"<< "F. Sonic" <<"\n"<<"\n"<<endl;
+    cout << "Bienvenido! Porfavor ingrese la letra correspondiente a la animacion que desea reproducir" <<"\n"<< "A. Cat Running"<<"\n"<< "B. Explotion 1"<<"\n"<< "C. Explotion 2 "<<"\n"<< "D. Homer Dance"<<"\n"<< "E. Super Mario"<<"\n"<< "F. Sonic" <<"\n"<<"Si desea salir ingrese 'Q'."<<"\n"<<endl;
     
     string Letra;//se guardara letra ingresada
     cin >> Letra; //Se lee la letra ingresada
@@ -52,23 +51,30 @@ bool iniciar (unsigned int i, uint8_t* data)
     
     if (Letra.size()>1) //chequea que el usuario haya ingresado una sola letra
     {
-        cerr<<"Error: opcion no valida. Valores posibles A, B, C, D, E y F."<< "\n"<< endl;
+        cerr<<"Error: opcion no valida. Valores posibles A, B, C, D, E y F, o Q en caso de que desee salir."<< "\n"<< endl;
         return false;
     }
      
     
     if ((temp[0]>='A'&& temp[0]<='F') || (temp[0]<= 'f'&& temp [0]>='a')) //chequea que la letra elegida este dentro de las opciones
     {
-        data [0]= temp[0]; // si es correcta, la almacena en el primer elemento de data.
+        data [0]= tolower(temp[0]); // si es correcta, la almacena en el primer elemento de data.
+	data [1]= 0; //Count = 0
     }
-    
+    else if (temp[0] == 'Q' || temp[0]== 'q') // si el usuario desea salir
+    {
+        data [0]= 0; //Letra = 0
+        return true;
+    }
+
     else // si es incorrecta, devuelve false
     {
-        cerr << "Error: opcion no valida. Valores posibles A, B, C, D, E y F."<< endl;
+        cerr << "Error: opcion no valida. Valores posibles A, B, C, D, E y F, o Q en caso de que desee salir."<< endl;
         return false;
     }
     
-    
+    delete [] temp;
+	
     //Para  elegir el orden de las maquinas en el que aparecera la animacion
     cout << "Porfavor elija el orden de las maquinas en que desea que se reproduzca la animacion" <<"\n"<<"El total de maquinas conectadas es de: "<< i <<"\n"<<"Asegurese de colocar todos los numeros del 1 al "<< i<<" sin repetir\n"<< endl;
     
@@ -115,6 +121,6 @@ bool iniciar (unsigned int i, uint8_t* data)
         flag=false;
         
     }
-    
+    delete [] tmp_arr;
     return true;
 }
