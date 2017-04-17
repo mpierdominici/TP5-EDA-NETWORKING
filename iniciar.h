@@ -8,6 +8,6 @@
 #include <cstdlib>
 #include <cstdint>
 
-bool iniciar (unsigned int i, uint8_t * data);
+bool iniciar (unsigned int i, char * data);
 
 #endif /* iniciar_h */
