@@ -2,10 +2,11 @@
 #ifndef iniciar_h
 #define iniciar_h
 
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 #include <string>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstdint>
 
 bool iniciar (unsigned int i, uint8_t * data);
 

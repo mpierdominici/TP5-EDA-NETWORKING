@@ -6,9 +6,9 @@
 #include <iostream>
 #include <fstream>
 
-#define ARCHIVO "/Users/martumaspero/Desktop/directions.txt"
+//#define ARCHIVO "/Users/martumaspero/Desktop/directions.txt"
 
-bool read_IPs(char* buffer, int n );
-int getNumberOfLines (void);
+bool read_IPs(char * path, char* buffer, int n );
+int getNumberOfLines (char * path);
 
 #endif /* read_IPS_h */

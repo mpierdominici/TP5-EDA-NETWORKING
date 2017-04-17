@@ -15,9 +15,9 @@ using namespace std;
  */
  
 
-bool read_IPs(char * buffer, int n) {
+bool read_IPs(char * path, char * buffer, int n) {
  
-    ifstream directions (ARCHIVO, std::ifstream::binary);
+    ifstream directions (path, std::ifstream::binary);
     if (!directions.is_open())
     {
         cerr << "Error opening file";
@@ -57,12 +57,12 @@ bool read_IPs(char * buffer, int n) {
  * Devuelve: El numero de lineas del archivo
  */
 
-int getNumberOfLines (void)
+int getNumberOfLines (char * path)
 {
     char temp[20];
     unsigned int x=0;
     
-    ifstream directions (ARCHIVO, std::ifstream::binary);
+    ifstream directions (path, std::ifstream::binary);
     while(!directions.eof())
     {
         directions.getline (temp, ' ');
@@ -71,5 +71,3 @@ int getNumberOfLines (void)
     directions.close();
     return x;
 }
-
-

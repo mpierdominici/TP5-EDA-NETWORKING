@@ -16,9 +16,19 @@ bool iniciar (unsigned int i, uint8_t* data)
 {
     
     //string s = std::to_string(i);
-    uint8_t tmp_arr[i];// donde se almacenaran los datos del usuario temporalmente hasta quelos mismos esten verificados.
-    
-    data [1]= 0; //Count = 0
+	if (i == 0)
+		return false;
+
+	uint8_t * tmp_arr;
+	char * temp;
+
+	try {
+		tmp_arr = new uint8_t [i];// donde se almacenaran los datos del usuario temporalmente hasta quelos mismos esten verificados.
+	}catch (bad_alloc& error) {
+		cerr << "bad_alloc caught: " << error.what() << endl;
+	}
+	
+	data [1]= 0; //Count = 0
     
     //Para elegir la animacion
     cout << "Bienvenido! Porfavor ingrese la letra correspondiente a la animacion que desea reproducir" <<"\n"<< "A. Cat Running"<<"\n"<< "B. Explotion 1"<<"\n"<< "C. Explotion 2 "<<"\n"<< "D. Homer Dance"<<"\n"<< "E. Super Mario"<<"\n"<< "F. Sonic" <<"\n"<<"\n"<<endl;
@@ -29,8 +39,14 @@ bool iniciar (unsigned int i, uint8_t* data)
     
     
     //Convierte string a arreglo char*
-    char * temp = new char[Letra.size() + 1];
-    copy(Letra.begin(), Letra.end(), temp);// copia lo que es ingresado por el usuario a un char *
+    try {
+		temp = new char[Letra.size() + 1];
+	}catch (bad_alloc& error) {
+		cerr << "bad_alloc caught: " << error.what() << endl;
+	}
+	
+	
+	copy(Letra.begin(), Letra.end(), temp);// copia lo que es ingresado por el usuario a un char *
     temp[Letra.size()] = '\0'; // terminador
     
     
