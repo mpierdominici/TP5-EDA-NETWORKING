@@ -1,5 +1,6 @@
 extern "C" {
 #include "parseCmdLine.h"
+#include "moreString.h"
 }
 
 #include "read_IPS.h"
@@ -14,11 +15,12 @@ extern "C" {
 #include <cstdio>
 
 #define IPS_FILE		"directions.txt"
+#define	PORT			"12345"
 #define N_ANIMATIONS	6
 
 #define IP_SIZE			30 //?????????????????????????????????????????????
 
-enum modes {LISTENING, SENDING, MAKING, FINISHED};
+enum modes {LISTENING, SENDING, PLAYING, MAKING, FINISHED};
 
 
 //PATH de los archivos de cada animacion. cada imagen debe estar numerada a partir del 1 (con el numero al final) Y FORMATO PNG
@@ -110,9 +112,10 @@ int main (int argc,char *argv[])
 	char * YouGo;
 	bool isValid;
 	int mode = LISTENING;
+	unsigned int myId;
 
 	int nPCs = getNumberOfLines(IPS_FILE); //numero de lineas == numero de compus
-	if (nPCs <=0)
+	if (nPCs <=1)
 		return EXIT_FAILURE;
 
 	try {
@@ -127,54 +130,39 @@ int main (int argc,char *argv[])
 	if (initialize(g,a) != true)		//configurar parte grafica (no crea el display!)
 		return EXIT_FAILURE;
 
-	int parsedArgs = parseCmdLine(argc, argv, parserCallback, NULL);
-	//va a devolver:
-	//-1 si hubo error de forma o si habia algun argumento distinto de "iniciar"
-	//0 si no habia ningun argumento --> hay que esperar a que la maquina que inicia nos mande YouGo
-	//1 si se recibio el argumento "iniciar" --> el usuario tiene que determinar la secuencia y la animacion
-	//otra cosa: seria que pusiste muchas veces "iniciar", lo contamos como error
-	switch (parsedArgs) {
-		case 1:
-			mode = MAKING;
-		break;
+	unsigned int userData [3] = {nPCs, 0, 0}; //datos para el callback:
+	// primero cuantas compus hay (para saber cuales serian validos), en el segundo dato se va a guardar el numero de compus
+	// y el tercero va a ser 1 si esta es la compu que inicia y viceversa
 
-		case 0:	
-			mode = LISTENING;	
-		break;
-
-		case -1: default:
-			return EXIT_FAILURE;
-	}
+	int parsedArgs = parseCmdLine(argc, argv, parserCallback, &userData);
+	// luego de esta llamada, NECESARIAMENTE debe haberse registrado el numero de pc en userData,
+	// y si se parseo mas de un argumento, el otro tiene que haber sido si o si "iniciar".
+	// si se recibieron mas argumentos (por ejemplo, varios numeros, o muchas veces "iniciar"): error
 	
+	if ( userData[1]!=0 && (parsedArgs == 1 || (parsedArgs == 2 && userData[2] == 1)) ) {
+		myId = userData[1]; //guardo en que pc estoy
+
+		switch (parsedArgs) {
+			case 2:
+				mode = MAKING;
+			break;
+
+			case 1:	
+				mode = LISTENING;	
+			break;
+		}
+	}
+	else
+		return EXIT_FAILURE;
+
 	while (mode != FINISHED) { //repetir hasta que el usuario apriete escape cuando tiene que determinar la nueva secuencia
 		switch(mode) {
-			case LISTENING: { //esperando a recibir el paquete YouGo
-				servidor s;
-				s.waitForCliente();	//quedarse aca hasta que se conecte con el que le va a mandar el paquete
-				s.receiveDataForCliente(YouGo, nPCs+2);	//recibir YouGo (asumo que me lo mandan bien)
-
-				if(!g->setupDisplay())
-					return EXIT_FAILURE;
-
-				a[YouGo[0]-'A'].play();	//en el primer elemento esta la animacion, la reproduzco
-				g->destroyDisplay();
-
-				if (YouGo[1] == nPCs)	
-					mode = MAKING;		//si el contador es igual al numero de pc, hay que volver a determinar una secuencia
-				else
-					mode = SENDING;		//si no, hay que mandar el paquete al siguiente
-			}
-			break;
-			
 			case MAKING: {
 				do {
 					isValid = iniciar(nPCs, YouGo);	//recibir input del usuario hasta que me lo de bien
 				} while (isValid == false);
 
-				if (YouGo[0] == 0)	
-					mode = FINISHED; //la rutina "iniciar" pone un 0 en el primer elemento si el usuario quiere terminar
-				else
-					mode = SENDING;  //si el usuario no apreto escape, mandar el nuevo paquete
+				mode = (YouGo[1]==myId) ? PLAYING: SENDING; //si la primera compu soy yo, reproducir la animacion. si no, mandar
 			}
 			break;
 
@@ -184,12 +172,43 @@ int main (int argc,char *argv[])
 				read_IPs(IPS_FILE, nextIP, ++YouGo[1]);
 				//aumentar el contador de compus y conseguir la IP de la compu que viene ahora
 				
-				c.ConectToServer(nextIP, "papa");	//PAPA ES EL PUERTO!!! ACA DESPUES VA A HABER OTRA COSA PERO PONELE
+				c.ConectToServer(nextIP, PORT);	
 				c.sendData(YouGo, nPCs+2);			//mandar el paquete
-
-				mode = LISTENING;					//esperar el proximo paquete
+				
+				mode = (YouGo[0]==0) ? FINISHED : LISTENING; 
+				//si el paquete que mande era que termino, ya esta. si no, espero el proximo paquete
 			}
 			break;
+
+			case PLAYING: {
+				if (YouGo[0]!=0) { //si hay una animacion, reproducirla
+					if(!g->setupDisplay())
+						return EXIT_FAILURE;
+
+					a[YouGo[0]-'a'].play();	//en el primer elemento esta la animacion, la reproduzco
+					g->destroyDisplay();
+					mode =  (YouGo[1] == nPCs) ? MAKING : SENDING;  
+					//si soy la ultima compu, armar la nueva secuencia. si no, mandar el paquete.
+				}
+				else
+					mode =  (YouGo[1] == nPCs) ? FINISHED : SENDING; 
+					//si no habia animacion, me fijo si tengo que avisarle a las otras compus que ya esta o si fui la ultima
+			}
+			break;
+
+			case LISTENING: { //esperando a recibir el paquete YouGo
+				servidor s;
+				s.waitForCliente();	//quedarse aca hasta que se conecte con el que le va a mandar el paquete
+				s.receiveDataForCliente(YouGo, nPCs+2);	//recibir YouGo (asumo que me lo mandan bien)
+
+				if (YouGo[0] != 0)
+					mode = PLAYING; //si hay una animacion, reproducirla
+				else if (YouGo[1] != nPCs)
+					mode = SENDING;	//si no hay una animacion y no soy la ultima compu, mandar que hay que terminar
+				else
+					mode = FINISHED;//soy la ultima y no hay animacion: listo
+			}
+			break;			
 		}
 	}
 	return EXIT_SUCCESS;
@@ -198,10 +217,26 @@ int main (int argc,char *argv[])
 
 int32_t	parserCallback(char * key, char * value, void * userData)
 {
-	if (key != NULL || strcmp(value, "iniciar")!= 0)
-		return false;
-	else
-		return true;
+	int32_t valid = false;
+	if (key == NULL) {
+		unsigned int * ud = (unsigned int *) userData; 
+
+		if (!strcmp(value, "iniciar")) {
+			ud[2] = 1;
+			valid = true;
+		}
+		else {
+			int isUnsInt;
+			unsigned int valueNumber = getUnsInt(value, &isUnsInt);
+
+			if (isUnsInt == true && ( valueNumber > 0 && valueNumber <= ud[0]) ) {
+				ud[1] = valueNumber;
+				valid = true;
+			}
+		}
+	}
+
+	return valid;
 }
 
 
