@@ -17,32 +17,35 @@ using namespace std;
 
 bool read_IPs(char * path, char * buffer, int n) {
  
-    ifstream directions (path, std::ifstream::binary);
-    if (!directions.is_open())
-    {
-        cerr << "Error opening file";
-        return false;
-    }
-   
+      ifstream directions;
+    directions.exceptions ( ifstream::failbit | ifstream::badbit );
     
-    char temp[20];
-    if (directions)
-    {
-           if (n==1)
+    try{
+        
+        directions.open(path, ifstream::in);
+        
+        char temp [20];
+        if (directions)
         {
-            directions.getline(buffer, ' ');
-            return true;
+            if (n==1)
+            {
+                directions.getline(buffer, ' ');
+                return true;
+            }
+            
+            for (int i=1; i<n;i++)
+            {
+                directions.getline (temp, ' ');
+            }
+            
+            directions.getline (buffer,' ');
         }
         
-        for (int i=1; i<n;i++)
-        {
-            directions.getline (temp, ' ');
-        }
-        
-        directions.getline (buffer,' ');
+        directions.close();
     }
-    
-    directions.close();
+    catch (ifstream::failure e) {
+        cerr << "Exception opening/reading/closing file\n"<< e.what()<<"\n"<<endl;
+    }
     return true;
 }
 
@@ -59,15 +62,25 @@ bool read_IPs(char * path, char * buffer, int n) {
 
 int getNumberOfLines (char * path)
 {
-    char temp[20];
+  char temp[20];
     unsigned int x=0;
     
-    ifstream directions (path, std::ifstream::binary);
-    while(!directions.eof())
-    {
-        directions.getline (temp, ' ');
-        x++;
+    ifstream directions;
+    directions.exceptions ( ifstream::failbit | ifstream::badbit );
+    
+    try{
+        
+        directions.open (path, ifstream::binary);
+        while(!directions.eof())
+        {
+            directions.getline (temp, ' ');
+            x++;
+        }
+        directions.close();
     }
-    directions.close();
+    catch (ifstream::failure e) {
+        cerr << "Exception opening/reading/closing file\n"<< e.what()<<"\n"<<endl;
+    }
+    
     return x;
 }
