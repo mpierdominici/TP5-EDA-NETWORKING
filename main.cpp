@@ -115,14 +115,17 @@ int main (int argc,char *argv[])
 	if (nPCs <=0)
 		return EXIT_FAILURE;
 
-	if (initialize(g,a) == false)		//inicializar la parte grafica
-		return EXIT_FAILURE;
-
 	try {
 		YouGo =  new char[nPCs+2];			//YouGo va a ser el bloque de datos que mando y recibo
 	} catch (bad_alloc& error) {
 		cerr << "bad_alloc caught: " << error.what() << endl;
 	}
+
+
+	Graphic * g = NULL;
+	Animation a [N_ANIMATIONS];
+	if (initialize(g,a) != true)		//configurar parte grafica (no crea el display!)
+		return EXIT_FAILURE;
 
 	int parsedArgs = parseCmdLine(argc, argv, parserCallback, NULL);
 	//va a devolver:
@@ -150,12 +153,11 @@ int main (int argc,char *argv[])
 				s.waitForCliente();	//quedarse aca hasta que se conecte con el que le va a mandar el paquete
 				s.receiveDataForCliente(YouGo, nPCs+2);	//recibir YouGo (asumo que me lo mandan bien)
 
-				Graphic * g = NULL;
-				Animation a [N_ANIMATIONS];
-				if (initialize(g,a) != true)
+				if(!g->setupDisplay())
 					return EXIT_FAILURE;
 
 				a[YouGo[0]-'A'].play();	//en el primer elemento esta la animacion, la reproduzco
+				g->destroyDisplay();
 
 				if (YouGo[1] == nPCs)	
 					mode = MAKING;		//si el contador es igual al numero de pc, hay que volver a determinar una secuencia
@@ -169,7 +171,7 @@ int main (int argc,char *argv[])
 					isValid = iniciar(nPCs, YouGo);	//recibir input del usuario hasta que me lo de bien
 				} while (isValid == false);
 
-				if (YouGo[1] == 0)	
+				if (YouGo[0] == 0)	
 					mode = FINISHED; //la rutina "iniciar" pone un 0 en el primer elemento si el usuario quiere terminar
 				else
 					mode = SENDING;  //si el usuario no apreto escape, mandar el nuevo paquete
@@ -188,8 +190,8 @@ int main (int argc,char *argv[])
 				mode = LISTENING;					//esperar el proximo paquete
 			}
 			break;
+		}
 	}
-
 	return EXIT_SUCCESS;
 }
 
