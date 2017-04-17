@@ -16,6 +16,11 @@ extern "C" {
 #define IPS_FILE		"directions.txt"
 #define N_ANIMATIONS	6
 
+#define IP_SIZE			30 //?????????????????????????????????????????????
+
+enum modes {LISTENING, SENDING, MAKING, FINISHED};
+
+
 //PATH de los archivos de cada animacion. cada imagen debe estar numerada a partir del 1 (con el numero al final) Y FORMATO PNG
 #define A_PATH "Img/Cat Running/Cat Running-F"
 #define B_PATH "Img/Explosion 1/Explosion 1-F"
@@ -102,46 +107,96 @@ int32_t	parserCallback(char *, char*, void *);
 
 int main (int argc,char *argv[])
 {
-	Graphic * g = NULL;
-	Animation a [N_ANIMATIONS];
-	uint8_t * YouGo;
+	char * YouGo;
 	bool isValid;
+	int mode = LISTENING;
 
-	int nPCs = getNumberOfLines(IPS_FILE);
+	int nPCs = getNumberOfLines(IPS_FILE); //numero de lineas == numero de compus
 	if (nPCs <=0)
 		return EXIT_FAILURE;
 
-	if (initialize(g,a) == false)
+	if (initialize(g,a) == false)		//inicializar la parte grafica
 		return EXIT_FAILURE;
 
 	try {
-		YouGo =  new uint8_t[nPCs+2];
+		YouGo =  new char[nPCs+2];			//YouGo va a ser el bloque de datos que mando y recibo
 	} catch (bad_alloc& error) {
 		cerr << "bad_alloc caught: " << error.what() << endl;
 	}
 
 	int parsedArgs = parseCmdLine(argc, argv, parserCallback, NULL);
-	
+	//va a devolver:
+	//-1 si hubo error de forma o si habia algun argumento distinto de "iniciar"
+	//0 si no habia ningun argumento --> hay que esperar a que la maquina que inicia nos mande YouGo
+	//1 si se recibio el argumento "iniciar" --> el usuario tiene que determinar la secuencia y la animacion
+	//otra cosa: seria que pusiste muchas veces "iniciar", lo contamos como error
 	switch (parsedArgs) {
 		case 1:
-			do {
-				isValid = iniciar(nPCs, YouGo);
-			} while (isValid == false);
+			mode = MAKING;
 		break;
 
-		case 0:	break;
+		case 0:	
+			mode = LISTENING;	
+		break;
 
 		case -1: default:
 			return EXIT_FAILURE;
 	}
 	
+	while (mode != FINISHED) { //repetir hasta que el usuario apriete escape cuando tiene que determinar la nueva secuencia
+		switch(mode) {
+			case LISTENING: { //esperando a recibir el paquete YouGo
+				servidor s;
+				s.waitForCliente();	//quedarse aca hasta que se conecte con el que le va a mandar el paquete
+				s.receiveDataForCliente(YouGo, nPCs+2);	//recibir YouGo (asumo que me lo mandan bien)
+
+				Graphic * g = NULL;
+				Animation a [N_ANIMATIONS];
+				if (initialize(g,a) != true)
+					return EXIT_FAILURE;
+
+				a[YouGo[0]-'A'].play();	//en el primer elemento esta la animacion, la reproduzco
+
+				if (YouGo[1] == nPCs)	
+					mode = MAKING;		//si el contador es igual al numero de pc, hay que volver a determinar una secuencia
+				else
+					mode = SENDING;		//si no, hay que mandar el paquete al siguiente
+			}
+			break;
+			
+			case MAKING: {
+				do {
+					isValid = iniciar(nPCs, YouGo);	//recibir input del usuario hasta que me lo de bien
+				} while (isValid == false);
+
+				if (YouGo[1] == 0)	
+					mode = FINISHED; //la rutina "iniciar" pone un 0 en el primer elemento si el usuario quiere terminar
+				else
+					mode = SENDING;  //si el usuario no apreto escape, mandar el nuevo paquete
+			}
+			break;
+
+			case SENDING: {
+				cliente c;
+				char nextIP[IP_SIZE];
+				read_IPs(IPS_FILE, nextIP, ++YouGo[1]);
+				//aumentar el contador de compus y conseguir la IP de la compu que viene ahora
+				
+				c.ConectToServer(nextIP, "papa");	//PAPA ES EL PUERTO!!! ACA DESPUES VA A HABER OTRA COSA PERO PONELE
+				c.sendData(YouGo, nPCs+2);			//mandar el paquete
+
+				mode = LISTENING;					//esperar el proximo paquete
+			}
+			break;
+	}
+
 	return EXIT_SUCCESS;
 }
 
 
 int32_t	parserCallback(char * key, char * value, void * userData)
 {
-	if (key == NULL || !strcmp(value, "iniciar"))
+	if (key != NULL || strcmp(value, "iniciar")!= 0)
 		return false;
 	else
 		return true;
