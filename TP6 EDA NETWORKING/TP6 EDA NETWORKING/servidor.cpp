@@ -49,18 +49,18 @@ bool servidor::receiveDataForCliente(char * buffer_t, int bufferSize)
 
 	if (error != boost::asio::error::eof)
 	{
-		if (longitudDelMensaje <= bufferSize)
-		{
+		//if (longitudDelMensaje <= bufferSize)
+		//{
 			for (size_t i = 0; i < bufferSize; i++)//transfiero la informacion de un buffer al otro
 			{
 				buffer_t[i] = bufferTemp[i];
 			}
 			return true;
-		}
-		else// en caso que el buffer enviado por el usuario sea muy chico envio false
-		{
-			return false;
-		}
+		//}
+		//else// en caso que el buffer enviado por el usuario sea muy chico envio false
+		//{
+			//return false;
+		//}
 
 	}
 	else
