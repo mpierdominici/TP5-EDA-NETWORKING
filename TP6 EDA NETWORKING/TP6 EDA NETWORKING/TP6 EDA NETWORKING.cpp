@@ -170,6 +170,10 @@ int main(int argc, char *argv[])
 			} while (isValid == false);
 
 			mode = (YouGo[2] == myId) ? PLAYING : SENDING; //si la primera compu soy yo, reproducir la animacion. si no, mandar
+			if (mode == PLAYING)
+			{
+				YouGo[1]++;
+			}
 		}
 					 break;
 
