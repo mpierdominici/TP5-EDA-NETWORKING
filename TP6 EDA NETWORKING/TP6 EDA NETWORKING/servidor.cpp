@@ -43,7 +43,7 @@ bool servidor::receiveDataForCliente(char * buffer_t, int bufferSize)
 	char bufferTemp[900];
 	do
 	{
-		longitudDelMensaje	=ServerSocket->read_some(boost::asio::buffer(bufferTemp), error);//recive la informacion del cliente y la guarda en bufferTemp
+		longitudDelMensaje	= ServerSocket->read_some(boost::asio::buffer(bufferTemp), error);//recive la informacion del cliente y la guarda en bufferTemp
 
 	} while (error);
 
